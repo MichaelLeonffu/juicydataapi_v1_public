@@ -63,7 +63,7 @@ app.get('/api/predict', (req, res) =>{
 
 	console.log(req.query)
 
-	if(req.query.alliance1team1 && req.query.alliance1team2 && req.query.alliance2team1 && req.query.alliance2team2){
+	if(!req.query.alliance1team1 && !req.query.alliance1team2 && !req.query.alliance2team1 && !req.query.alliance2team2){
 		console.log('Triggered the mising alliance problem')
 		res.status(200).json({
 			prediction:{
@@ -127,30 +127,40 @@ app.get('/api/predict', (req, res) =>{
 				gameData: '$gameData'
 			}
 		}}
-	], 
-		function(err, eventsDocs){
-			if(err){
-				console.log(err)
-				res.status(500).send(err)
-				return
-			}else{
-				if(eventsDocs){ //NEED TO TEST THIS
-					res.json(algorithms.algorithmLoader('simpleOPR',eventsDocs[0],{
-						alliance1: {
-							team1: Number(req.query.alliance1team1),
-							team2: Number(req.query.alliance1team2)
-						},
-						alliance2: {
-							team1: Number(req.query.alliance2team1),
-							team2: Number(req.query.alliance2team2)
-						},
-					}))
-				}else{		// if threre is no documents returned then:
-					res.status(400).send('Events not found')
-				}
+	], cursorHandle)
+
+	function cursorHandle(err, cursor){
+		if(err){
+			console.log(err)
+			return
+		}else{
+			cursor.toArray(calcHandle)
+		}
+	}
+
+	function calcHandle(err, eventsDocs){
+		if(err){
+			console.log(err)
+			res.status(500).send(err)
+			return
+		}else{
+			if(eventsDocs){ //NEED TO TEST THIS
+				res.json(algorithms.algorithmLoader('simpleOPR',eventsDocs[0],{
+					alliance1: {
+						team1: Number(req.query.alliance1team1),
+						team2: Number(req.query.alliance1team2)
+					},
+					alliance2: {
+						team1: Number(req.query.alliance2team1),
+						team2: Number(req.query.alliance2team2)
+					},
+				}))
+			}else{		// if threre is no documents returned then:
+				res.status(400).send('Events not found')
 			}
 		}
-	)
+	}
+
 
 })
 
