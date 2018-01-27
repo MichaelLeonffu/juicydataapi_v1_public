@@ -301,21 +301,31 @@ app.get('/api/teams/read', (req, res) =>{
 		// 	teamName: {$arrayElemAt: [{$split: ['$teamInformation.team_name_short', ', Team #']},0]},
 		// 	teamNumber: Number(req.query.teamNumber)
 		// }}
-	],
-		function(err, eventsDocs){
-			if(err){
-				console.log(err)
-				res.status(500).send(err)
-				return
-			}else{
-				if(eventsDocs){ //NEED TO TEST THIS
-					res.json(eventsDocs[0])
-				}else{		// if threre is no documents returned then:
-					res.status(400).send('Events not found')
-				}
+	], cursorHandle)
+
+	function cursorHandle(err, cursor){
+		if(err){
+			console.log(err)
+			return
+		}else{
+			cursor.toArray(calcHandle)
+		}
+	}
+	
+	function calcHandle(err, eventsDocs){
+		if(err){
+			console.log(err)
+			res.status(500).send(err)
+			return
+		}else{
+			if(eventsDocs){ //NEED TO TEST THIS
+				res.json(eventsDocs[0])
+			}else{		// if threre is no documents returned then:
+				res.status(400).send('Events not found')
 			}
 		}
-	)
+	}
+	
 })
 
 }
