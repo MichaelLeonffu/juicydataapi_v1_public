@@ -1,6 +1,6 @@
 //teams by Michael Leonffu
 var MongoClient = require('mongodb').MongoClient	//CHANGE
-var url = "mongodb://localhost:27017/JuicyData"	//CHANGE
+var url = "mongodb://localhost:27017"	//CHANGE
 
 var apiKey = require('../../config/apiKey.js')
 var axios = require('axios')
@@ -23,7 +23,8 @@ toaApi.get('/teams').then(function(response) {
 		teamsList[i]._id = response.data[i].team_number
 	}
 	console.log('teamsList',teamsList)
-	MongoClient.connect(url, function(err, db) {
+	MongoClient.connect(url, function(err, client) {
+		var db = client.db('JuicyData')
 		if (err) throw err
 		db.collection('teams').insertMany(
 			teamsList,
