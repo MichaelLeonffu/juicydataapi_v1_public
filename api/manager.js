@@ -13,7 +13,7 @@ module.exports = {}
 
 // Find these at theorangealliance.org
 var eventKeys = [
-	'1718-CASD-SCHS2', //testing
+	'1718-CASD-SCHS3', //testing
 	
 
 	// '1617-CASD-GAUS', //testing
@@ -50,7 +50,7 @@ function manager(){
 				// })
 
 				var orchardList = [
-					'1718-CASD-SCHS2',
+					'1718-CASD-SCHS3',
 
 					// '1718-FIM-CMP1',	//team 5386
 					// '1718-FIM-MARY',
@@ -64,7 +64,7 @@ function manager(){
 				for (var i = 0; i < orchardList.length; i++) {
 					//orchardList[i]
 					orangeFarm({db:db, ObjectId:ObjectId}, orchardList[i], function(farmReport){
-						console.log('farmReport:', farmReport)
+						console.log('farmReport:', farmReport, 'At:', new Date())
 					})
 				}
 			}

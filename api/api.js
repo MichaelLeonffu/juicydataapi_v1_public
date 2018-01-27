@@ -63,6 +63,23 @@ app.get('/api/predict', (req, res) =>{
 
 	console.log(req.query)
 
+	if(req.query.alliance1team1 && req.query.alliance1team2 && req.query.alliance2team1 && req.query.alliance2team2){
+		console.log('Triggered the mising alliance problem')
+		res.status(200).json({
+			prediction:{
+				winner: 'Alliance1',
+				chance: .5,
+				alliance1:{
+					score: 123
+				},
+				alliance2:{
+					score: 123
+				}
+			}
+		})
+		return
+	}
+
 	db.collection('events').aggregate([
 		{$match: {
 			_id: String(req.query.eventId)
