@@ -24,17 +24,17 @@ toaApi.get('/teams').then(function(response) {
 	}
 	console.log('teamsList',teamsList)
 	MongoClient.connect(url, function(err, client) {
-		var db = client.db('JuicyData')
 		if (err) throw err
+		var db = client.db('JuicyData')
 		db.collection('teams').insertMany(
 			teamsList,
 			function(err, responce){
 				if(err){
 					console.log(err),
-					db.close()
+					client.close()
 				}else{
 					console.log(responce)
-					db.close()
+					client.close()
 				}
 			}
 		)
