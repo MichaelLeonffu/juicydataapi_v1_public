@@ -209,6 +209,7 @@ function getData(eventKeys, callback) {
 									}
 									getDetails()
 								}
+								finishIfDone()
 							}).catch(function(e) {
 								console.log("Couldn't get matches for " + eventKey + ", retrying: " + e)
 								setTimeout(getMatches, 100)
