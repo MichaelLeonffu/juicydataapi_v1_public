@@ -39,27 +39,11 @@ function manager(){
 			var db = client.db('JuicyData')
 			if(err){
 				console.log(err)
-				res.status(500).send(err)
 				return
 			}else{
 
 				var orangeFarm = require('./orangeFarm/orangeFarm') // load our routes and pass in our app
-				// orangeFarm({db:db, ObjectId:ObjectId}, '1718-NCAL-RWC', function(farmReport){
-				// 	console.log(farmReport)
-				// 	db.close()
-				// })
-
-				var orchardList = [
-					'1718-CASD-SCHS3',
-
-					// '1718-FIM-CMP1',	//team 5386
-					// '1718-FIM-MARY',
-					// '1718-FIM-GLBR',
-
-					// '1718-FIM-CMP2',
-
-					// '1718-OH-AUS'	//highest scoreing 593
-				]
+				var orchardList = eventKeys
 
 				for (var i = 0; i < orchardList.length; i++) {
 					//orchardList[i]
