@@ -1,9 +1,13 @@
 //api by Michael Leonffu
 module.exports = function(app, db, ObjectId) {
 //require('./module')(app) This is the example; template IF THERE ARE MORE APIs
+
 app.get('/api', function(req, res) {
 	res.send('api home')
 })
+
+//Add a GET for /api/events/read; replace current api with /api/event/read.
+//Events to get events while event to get one eventOut
 
 app.get('/api/events/read', (req, res) =>{
 	db.collection('eventOut').findOne(
@@ -15,12 +19,13 @@ app.get('/api/events/read', (req, res) =>{
 				console.log(err)
 				res.status(500).send(err)
 				return
+			}
+			if(eventDoc){
+				//Return a document if found
+				res.json(eventDoc)
 			}else{
-				if(eventDoc){ //NEED TO TEST THIS
-					res.json(eventDoc)
-				}else{		// if threre is no documents returned then:
-					res.status(400).send('Event not found')
-				}
+				//If no event is returned
+				res.status(400).send('Event not found')
 			}
 		}
 	)
@@ -28,7 +33,7 @@ app.get('/api/events/read', (req, res) =>{
 
 app.get('/api/predict', (req, res) =>{
 
-	var algorithms = require('./algorithms/algorithms')
+	const algorithms = require('./algorithms/algorithms')
 
 	// req.query = {
 	// 	eventId: 'abc',
@@ -62,23 +67,6 @@ app.get('/api/predict', (req, res) =>{
 	// }
 
 	console.log(req.query)
-
-	if(!req.query.alliance1team1 && !req.query.alliance1team2 && !req.query.alliance2team1 && !req.query.alliance2team2){
-		console.log('Triggered the mising alliance problem')
-		res.status(200).json({
-			prediction:{
-				winner: 'Alliance1',
-				chance: .5,
-				alliance1:{
-					score: 123
-				},
-				alliance2:{
-					score: 123
-				}
-			}
-		})
-		return
-	}
 
 	db.collection('events').aggregate([
 		{$match: {
@@ -133,35 +121,33 @@ app.get('/api/predict', (req, res) =>{
 		if(err){
 			console.log(err)
 			return
-		}else{
-			cursor.toArray(calcHandle)
 		}
+		cursor.toArray(predict)
 	}
 
-	function calcHandle(err, eventsDocs){
+	function predict(err, eventsDocs){
 		if(err){
 			console.log(err)
 			res.status(500).send(err)
 			return
+		}
+		if(eventsDocs){
+			//Document is found, running algorithms
+			res.json(algorithms.algorithmLoader('simpleOPR',eventsDocs[0],{
+				alliance1: {
+					team1: Number(req.query.alliance1team1),
+					team2: Number(req.query.alliance1team2)
+				},
+				alliance2: {
+					team1: Number(req.query.alliance2team1),
+					team2: Number(req.query.alliance2team2)
+				},
+			}))
 		}else{
-			if(eventsDocs){ //NEED TO TEST THIS
-				res.json(algorithms.algorithmLoader('simpleOPR',eventsDocs[0],{
-					alliance1: {
-						team1: Number(req.query.alliance1team1),
-						team2: Number(req.query.alliance1team2)
-					},
-					alliance2: {
-						team1: Number(req.query.alliance2team1),
-						team2: Number(req.query.alliance2team2)
-					},
-				}))
-			}else{		// if threre is no documents returned then:
-				res.status(400).send('Events not found')
-			}
+			//If no document is found then
+			res.status(400).send('Events not found')
 		}
 	}
-
-
 })
 
 app.get('/api/teams/read', (req, res) =>{
@@ -307,25 +293,25 @@ app.get('/api/teams/read', (req, res) =>{
 		if(err){
 			console.log(err)
 			return
-		}else{
-			cursor.toArray(calcHandle)
 		}
+		cursor.toArray(calcHandle)
 	}
 	
-	function calcHandle(err, eventsDocs){
+	function calcHandle(err, teamsDocs){
 		if(err){
 			console.log(err)
 			res.status(500).send(err)
 			return
+		}
+
+		if(teamsDocs){
+			//If there is a document
+			res.json(teamsDocs[0])
 		}else{
-			if(eventsDocs){ //NEED TO TEST THIS
-				res.json(eventsDocs[0])
-			}else{		// if threre is no documents returned then:
-				res.status(400).send('Events not found')
-			}
+			//If no documents are returned
+			res.status(400).send('Events not found')
 		}
 	}
-	
 })
 
 }
