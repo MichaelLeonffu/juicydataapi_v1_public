@@ -6,6 +6,10 @@ app.get('/api', function(req, res) {
 	res.send('api home')
 })
 
+app.get('/api/version', (req, res) =>{
+	res.send('v1.0-beta')
+})
+
 //Add a GET for /api/events/read; replace current api with /api/event/read.
 //Events to get events while event to get one eventOut
 
