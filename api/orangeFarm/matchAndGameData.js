@@ -39,6 +39,9 @@ function getData(eventKeys, callback) {
 
 		let finishIfDone = function() {
 			for (let eventKey of eventKeys) {
+				if (!matchNumbers[eventKey] || !matchDatas[eventKey] || !gameDatas.red[eventKey] || !gameDatas.blue[eventKey]) {
+					return
+				}
 				for (let matchNumber of matchNumbers[eventKey]) {
 					if (!matchDatas[eventKey][matchNumber] || !gameDatas.red[eventKey][matchNumber] || !gameDatas.blue[eventKey][matchNumber]) {
 						return
