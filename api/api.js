@@ -318,4 +318,206 @@ app.get('/api/teams/read', (req, res) =>{
 	}
 })
 
+app.post('/api/data/uploadSchedule', (req, res) =>{
+
+	// res = {
+	// 	{
+	// 		_id: 'abc', //toaEventKey
+	// 		schedule:[ //Aray of JSON
+	// 			{
+	// 				matchNumber: 123, //Match Number
+	// 				teams:{
+	// 					red1: {
+	// 						teamNumber: 123,
+	// 						surrogate: false //True if this team was surrogate
+	// 					},
+	// 					red2: {
+	// 						teamNumber: 123,
+	// 						surrogate: false
+	// 					},
+	// 					blue1: {
+	// 						teamNumber: 123,
+	// 						surrogate: false
+	// 					},
+	// 					blue2: {
+	// 						teamNumber: 123,
+	// 						surrogate: false
+	// 					}
+	// 				}
+	// 			}
+	// 		]
+	// 	}
+	// }
+
+	console.log(req.body)
+	console.log("post body")
+
+	//$eq: req.query.teamNumber
+	db.collection('schedules').save(req.body, {w:1}, function(err, result){
+		if(err)
+			console.log(err)
+
+		console.log(result)
+
+		//if no error?
+		res.status(200).send("Got It")
+	})
+
+	// res.status(200).send("Got It")
+
+})
+
+app.post('/api/data/uploadSync', (req, res) =>{
+
+	// req = {
+	// 	gameData: [
+	// 		{
+	// 			_id:{
+	// 				toaEventKey: 'abc',
+	// 				matchInformation:{
+	// 					matchNumber: 123,
+	// 					robotAlliance: 'abc', //blue or red; with lower case
+	// 					teams: [123, 123]
+	// 				}
+	// 			}
+	// 			gameInformation:{	//CHECK IF ALL THSES TYPES ARE CORRECT AND ALSO HAVE COFRRECT MEANING!
+	// 				auto:{
+	// 					jewel: 123,
+	// 					glyphs: 123,
+	// 					keys: 123,
+	// 					park: 123
+	// 				},
+	// 				driver:{
+	// 					glyphs: 123,
+	// 					rows: 123,
+	// 					columns: 123,
+	// 					cypher: 123
+	// 				},
+	// 				end:{
+	// 					relic1: 123,	//Amount of relics in that zone
+	// 					relic2: 123,
+	// 					relic3: 123,
+	// 					relicsUp: 123,	//Amount of relects standing up
+	// 					balanced: 123	//How many robots are balanced
+	// 				}
+	// 			}
+	// 		}
+	// 	],
+	// 	matchData: [
+	// 		{
+	// 			_id:{
+	// 				toaEventKey: 'abc',
+	// 				matchInformation:{
+	// 					matchNumber: 123,
+	// 					teams: {
+	// 						red1: 123,
+	// 						red2: 123,
+	// 						blue1: 123,
+	// 						blue2: 123
+	// 					}
+	// 				}
+	// 			},
+	// 			resultInformation:{
+	// 				winner: 'abc', //'blue', 'red', 'tie'
+	// 				score:{
+	// 					auto:{
+	// 						red: 123, //red alliance autonomous score
+	// 						blue: 123 //blue alliance autonomous score
+	// 					},
+	// 					driver:{
+	// 						red: 123, //red alliance tele-op score
+	// 						blue: 123 //blue alliance tele-op score
+	// 					},
+	// 					end:{
+	// 						red: 123, //red alliance end-game score
+	// 						blue: 123 //blue alliance end-game score
+	// 					},
+	// 					total:{
+	// 						red: 123, //red alliance total score
+	// 						blue: 123 //blue alliance total score
+	// 					},
+	// 					penalty:{
+	// 						red: 123, //red alliance penalty score
+	// 						blue: 123 //blue alliance penalty score
+	// 					},
+	// 					final:{
+	// 						red: 123, //red alliance final score
+	// 						blue: 123 //blue alliance final score
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	]
+	// }
+
+	console.log(req.body.gameData)
+
+	var theEventToaEventKey = getToaKey()
+
+	saveGameDataInOrder(req.body.gameData)
+
+	function saveGameDataInOrder(arrayOfGameData){
+		if(arrayOfGameData.length <= 0){
+			//no data? or done
+			saveMatchDataInOrder(req.body.matchData)
+		}else{
+			db.collection('gameData').save(arrayOfGameData[0], {w:1}, function(err, result){
+				if(err){
+					console.log("error gameData")
+					console.log(err)
+				}else{
+					console.log("no error gameData")
+				}
+				arrayOfGameData.shift()	//remove first element
+				saveGameDataInOrder(arrayOfGameData)
+			})
+		}
+	}
+
+	function saveMatchDataInOrder(arrayOfMatchData){
+		if(arrayOfMatchData.length <= 0){
+			//no data? or done
+			finalStep()
+		}else{
+			db.collection('matchData').save(arrayOfMatchData[0], {w:1}, function(err, result){
+				if(err){
+					console.log("error matchData")
+					console.log(err)
+				}else{
+					console.log("no error matchData")
+				}
+				arrayOfMatchData.shift()	//remove first element
+				saveMatchDataInOrder(arrayOfMatchData)
+			})
+		}
+	}
+
+	function getToaKey(){//using req body
+		var eventToaEventKey = ""
+		if(req.body.matchData.length != 0){
+			var eventToaEventKey = req.body.matchData[0]._id.toaEventKey
+		}else if(req.body.gameData.length != 0){
+			var eventToaEventKey = req.body.gameData[0]._id.toaEventKey
+		}else{
+			console.log("CANNOT GET TOAEVENTKEY LOL RIP!")
+			//Throws excpetion here
+		}
+		console.log(eventToaEventKey)
+
+		return eventToaEventKey
+	}
+
+	function finalStep(){
+		var orangeFarm = require('./orangeFarm/orangeFarm') // load our routes and pass in our app
+
+		orangeFarm({db:db, ObjectId:ObjectId}, "1718-CAL-GAMES", function(farmReport){
+			console.log('farmReport:', farmReport, 'At:', new Date())
+			//this is good
+			res.status(200).send("Got It Good")
+			//but when is it bad?
+		})
+	}
+
+})
+
 }
